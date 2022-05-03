@@ -1,19 +1,19 @@
 // externals
 import axios, { AxiosError } from "axios";
 
-export enum CacheOption {
+export enum RequestApiFetchCacheOption {
     Default = 0,
     NoCache = 1
 }
 
-export enum FormatOption {
+export enum RequestApiFetchFormatOption {
     Default = 0,
     Json = 1
 }
 
 export const REST_API_FETCH_OPTIONS_DEFAULT = {
-    cache: CacheOption.NoCache,
-    format: FormatOption.Json
+    cache: RequestApiFetchCacheOption.NoCache,
+    format: RequestApiFetchFormatOption.Json
 };
 
 export enum RestApiFetchErrorType {
@@ -34,9 +34,11 @@ export type RestApiFetchResponseMappers = {
 };
 
 export type RestApiFetchOptions = {
-    cache?: CacheOption;
-    format?: FormatOption;
+    cache?: RequestApiFetchCacheOption;
+    format?: RequestApiFetchFormatOption;
 };
+
+export type RequestApiFetchHeaders = Record<string, string | number | boolean>;
 
 /**
  * ST = Base Success Type, FT = Failure Type
@@ -49,18 +51,19 @@ export type RestApiFetchOptions = {
  * a simple text message instead of a JSON object when a call fails).
  */
 export class RestApiFetch<ST = any, FT = string> {
-    private cache: CacheOption;
-    private format: FormatOption;
+    private cache: RequestApiFetchCacheOption;
+    private format: RequestApiFetchFormatOption;
+    private defaultHeaders: RequestApiFetchHeaders;
     constructor(options: RestApiFetchOptions = REST_API_FETCH_OPTIONS_DEFAULT) {
         this.cache = options.cache;
         this.format = options.format;
     }
     private buildHeaders(requestIncludesContent = true) {
-        const result: Record<string, string | number | boolean> = {};
-        if (this.cache === CacheOption.NoCache) {
+        const result: RequestApiFetchHeaders = { ...this.defaultHeaders };
+        if (this.cache === RequestApiFetchCacheOption.NoCache) {
             result["Cache-Control"] = "no-cache";
         }
-        if (this.format === FormatOption.Json) {
+        if (this.format === RequestApiFetchFormatOption.Json) {
             result["Accept"] = "application/json";
             if (requestIncludesContent) {
                 result["Content-Type"] = "no-cache";
@@ -120,6 +123,9 @@ export class RestApiFetch<ST = any, FT = string> {
             return errTyped.isAxiosError ? this.mapAxiosError(errTyped) : error;
         }
         return this.mapStringToError(errorValidationMessage);
+    }
+    public async setDefaultHeaders(headers: RequestApiFetchHeaders) {
+        this.defaultHeaders = headers;
     }
     public async get<T>(uri: string): Promise<T> {
         try {
