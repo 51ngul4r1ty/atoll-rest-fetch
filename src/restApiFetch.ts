@@ -226,12 +226,5 @@ export class RestApiFetch<ST = any, FT = string> {
         } catch (error: any) {
             return await this.handleErrorAndRetry(error, options, apiCall);
         }
-        // try {
-        //     const actionResponse = await axios.post(uri, payload, this.buildHeaders(requestIncludesContent));
-        //     const axiosResponseData = actionResponse.data as T; // as AuthServerResponse;
-        //     return axiosResponseData;
-        // } catch (error) {
-        //     throw this.buildFromCaughtError(error);
-        // }
     }
 }
