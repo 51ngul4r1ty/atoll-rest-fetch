@@ -1,4 +1,8 @@
-// interfaces/types
-import { RestApiFetch } from "./restApiFetch";
+// This is the main "entry point" into restApiFetch - most consumers should use this directly
+export { restApiFetch } from "./instance";
 
-export const restApiFetch = new RestApiFetch();
+// All other exports serve a "supporting" function to `restApiFetch` itself.
+export * from "./restApiFetch";
+export * from "./restApiFetchConsts";
+export * from "./restApiFetchEnums";
+export * from "./restApiFetchTypes";

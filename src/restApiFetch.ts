@@ -1,67 +1,23 @@
 // externals
 import axios, { AxiosError } from "axios";
 
-export enum RequestApiFetchCacheOption {
-    Default = 0,
-    NoCache = 1
-}
+// consts/enums
+import {
+    RESOURCE_REQUEST_OPTIONS_CONTENT_DEFAULT,
+    RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT,
+    REST_API_FETCH_OPTIONS_DEFAULT
+} from "./restApiFetchConsts";
+import { RequestApiFetchCacheOption, RequestApiFetchFormatOption, RestApiFetchErrorType } from "./restApiFetchEnums";
 
-export enum RequestApiFetchFormatOption {
-    Default = 0,
-    Json = 1
-}
-
-export const REST_API_FETCH_OPTIONS_DEFAULT = {
-    cache: RequestApiFetchCacheOption.NoCache,
-    format: RequestApiFetchFormatOption.Json
-};
-
-export enum RestApiFetchErrorType {
-    UnexpectedError = 1,
-    ThirdPartyLibError = 2 // aka Axios, but that could change in future
-}
-
-export type RestApiFetchError<T = any> = {
-    message: string;
-    status: string;
-    errorType: RestApiFetchErrorType;
-    response?: T;
-};
-
-export type RestApiFetchResponseMappers = {
-    item: (response: any) => any;
-    items: (response: any) => any[];
-};
-
-export type AsyncAuthFailureHandler = () => Promise<boolean>;
-
-export type RestApiFetchOptions = {
-    cache?: RequestApiFetchCacheOption;
-    format?: RequestApiFetchFormatOption;
-};
-
-export type RequestApiFetchHeaders = Record<string, string | number | boolean>;
-
-/** This represents the correct runtime type as opposed to the defined type */
-export type RuntimeAxiosError = Omit<AxiosError, "status"> & {
-    status: number;
-};
-
-export type ResourceRequestOptions = {
-    includeAuthHeader?: boolean;
-    includeContentTypeHeader?: boolean;
-    skipRetryOnAuthFailure?: boolean;
-};
-
-export const RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT: ResourceRequestOptions = {
-    includeAuthHeader: true,
-    includeContentTypeHeader: true
-};
-
-export const RESOURCE_REQUEST_OPTIONS_CONTENT_DEFAULT: ResourceRequestOptions = {
-    includeAuthHeader: true,
-    includeContentTypeHeader: false
-};
+// interfaces/types
+import type {
+    AsyncAuthFailureHandler,
+    RequestApiFetchHeaders,
+    ResourceRequestOptions,
+    RestApiFetchError,
+    RestApiFetchOptions,
+    RuntimeAxiosError
+} from "./restApiFetchTypes";
 
 /**
  * ST = Base Success Type, FT = Failure Type
