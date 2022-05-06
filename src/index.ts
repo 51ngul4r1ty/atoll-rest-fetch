@@ -57,6 +57,7 @@ export class RestApiFetch<ST = any, FT = string> {
     constructor(options: RestApiFetchOptions = REST_API_FETCH_OPTIONS_DEFAULT) {
         this.cache = options.cache;
         this.format = options.format;
+        this.defaultHeaders = {};
     }
     private buildHeaders(requestIncludesContent = true) {
         const result: RequestApiFetchHeaders = { ...this.defaultHeaders };
@@ -124,8 +125,14 @@ export class RestApiFetch<ST = any, FT = string> {
         }
         return this.mapStringToError(errorValidationMessage);
     }
-    public async setDefaultHeaders(headers: RequestApiFetchHeaders) {
-        this.defaultHeaders = headers;
+    public getDefaultHeaders(): RequestApiFetchHeaders {
+        return { ...this.defaultHeaders };
+    }
+    public setDefaultHeaders(headers: RequestApiFetchHeaders) {
+        this.defaultHeaders = { ...headers };
+    }
+    public setDefaultHeader(headerName: string, headerValue: string) {
+        this.defaultHeaders[headerName] = headerValue;
     }
     public async get<T>(uri: string): Promise<T> {
         try {
