@@ -12,3 +12,9 @@ export enum RestApiFetchErrorType {
     UnexpectedError = 1,
     ThirdPartyLibError = 2 // aka Axios, but that could change in future
 }
+
+export enum RestApiFetchErrorSubType {
+    None = 0,
+    ThirdPartyLibErrorType1 = 1, // isAxiosError(err) has returned true
+    ThirdPartyLibErrorType2 = 2 // isAxiosError(err) has returned false
+}

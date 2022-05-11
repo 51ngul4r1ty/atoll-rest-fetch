@@ -2,12 +2,18 @@
 import { AxiosError } from "axios";
 
 // consts/enums
-import { RequestApiFetchCacheOption, RequestApiFetchFormatOption, RestApiFetchErrorType } from "./restApiFetchEnums";
+import {
+    RequestApiFetchCacheOption,
+    RequestApiFetchFormatOption,
+    RestApiFetchErrorSubType,
+    RestApiFetchErrorType
+} from "./restApiFetchEnums";
 
 export type RestApiFetchError<T = any> = {
     message: string;
-    status: string;
+    status: number;
     errorType: RestApiFetchErrorType;
+    errorSubType: RestApiFetchErrorSubType;
     response?: T;
 };
 

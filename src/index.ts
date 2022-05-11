@@ -6,3 +6,4 @@ export * from "./restApiFetch";
 export * from "./restApiFetchConsts";
 export * from "./restApiFetchEnums";
 export * from "./restApiFetchTypes";
+export * from "./restApiFetchUtils";

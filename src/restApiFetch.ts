@@ -1,5 +1,6 @@
 // externals
 import axios, { AxiosError } from "axios";
+import { StatusCodes } from "http-status-codes";
 
 // consts/enums
 import {
@@ -7,7 +8,12 @@ import {
     RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT,
     REST_API_FETCH_OPTIONS_DEFAULT
 } from "./restApiFetchConsts";
-import { RequestApiFetchCacheOption, RequestApiFetchFormatOption, RestApiFetchErrorType } from "./restApiFetchEnums";
+import {
+    RequestApiFetchCacheOption,
+    RequestApiFetchFormatOption,
+    RestApiFetchErrorSubType,
+    RestApiFetchErrorType
+} from "./restApiFetchEnums";
 
 // interfaces/types
 import type {
@@ -63,11 +69,22 @@ export class RestApiFetch<ST = any, FT = string> {
         }
         return result;
     }
-    private mapAxiosError(err: AxiosError): RestApiFetchError<FT> {
+    private mapAxiosErrorType1(err: AxiosError): RestApiFetchError<FT> {
+        const fixedError = this.fixAxiosError(err);
+        return {
+            message: fixedError.message || "",
+            status: fixedError.status || StatusCodes.OK,
+            errorType: RestApiFetchErrorType.ThirdPartyLibError,
+            errorSubType: RestApiFetchErrorSubType.ThirdPartyLibErrorType1,
+            response: fixedError.response?.data as FT
+        };
+    }
+    private mapAxiosErrorType2(err: any): RestApiFetchError<FT> {
         return {
             message: err.message || "",
-            status: err.status || "",
+            status: err.status || StatusCodes.OK,
             errorType: RestApiFetchErrorType.ThirdPartyLibError,
+            errorSubType: RestApiFetchErrorSubType.ThirdPartyLibErrorType2,
             response: err.response?.data as FT
         };
     }
@@ -104,15 +121,23 @@ export class RestApiFetch<ST = any, FT = string> {
     private mapStringToError(error: string): RestApiFetchError {
         return {
             message: error,
-            status: "",
-            errorType: RestApiFetchErrorType.UnexpectedError
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            errorType: RestApiFetchErrorType.UnexpectedError,
+            errorSubType: RestApiFetchErrorSubType.None
         };
+    }
+    private isAxiosErrorType2(error: any) {
+        return error.status && error.name === "AxiosError";
     }
     private buildFromCaughtError(error: any): string | Error | RestApiFetchError {
         const errorValidationMessage = this.buildErrorValidationMessage(error);
         if (!errorValidationMessage) {
             const errTyped = error as AxiosError;
-            return errTyped.isAxiosError ? this.mapAxiosError(errTyped) : error;
+            if (axios.isAxiosError(error)) {
+                return this.mapAxiosErrorType1(errTyped);
+            } else if (this.isAxiosErrorType2(error)) {
+                return this.mapAxiosErrorType2(error);
+            }
         }
         return this.mapStringToError(errorValidationMessage);
     }
@@ -142,17 +167,27 @@ export class RestApiFetch<ST = any, FT = string> {
         }
         return error as RuntimeAxiosError;
     }
-    private async handleErrorAndRetry<T>(error: any, options: ResourceRequestOptions, apiCall: () => T) {
+    private async handleError<T = any>(error: any): Promise<T> {
+        const errorTyped = this.fixAxiosError(error);
+        throw this.buildFromCaughtError(errorTyped);
+    }
+    private async handleErrorAndRetry<T>(error: any, options: ResourceRequestOptions, apiCall: () => T): Promise<T> {
         const errorTyped = this.fixAxiosError(error);
         if (options.skipRetryOnAuthFailure || errorTyped.status !== 401) {
-            throw this.buildFromCaughtError(error);
+            this.handleError(error);
         }
         const success = await this.handleAuthFailure();
-        if (success) {
-            const response = await apiCall();
-            return response;
+        if (!success) {
+            // NOTE: TS requires "return" here even though handleError always throws error
+            return await this.handleError(error);
         } else {
-            throw this.buildFromCaughtError(error);
+            try {
+                const response = await apiCall();
+                return response;
+            } catch (error: any) {
+                // NOTE: TS requires "return" here even though handleError always throws error
+                return await this.handleError(error);
+            }
         }
     }
     public async get<T>(uri: string, options: ResourceRequestOptions = RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT): Promise<T> {
