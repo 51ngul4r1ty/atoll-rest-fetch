@@ -190,10 +190,89 @@ export class RestApiFetch<ST = any, FT = string> {
             }
         }
     }
-    public async get<T>(uri: string, options: ResourceRequestOptions = RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT): Promise<T> {
+    /**
+     * Performs a GET operation to retrieve a resource collection or item.
+     */
+    public async read<T>(uri: string, options: ResourceRequestOptions = RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT): Promise<T> {
         const apiCall = async () => {
             const response = await axios.get(uri, {
                 headers: this.buildHeaders(options)
+            });
+            return response.data as T;
+        };
+        try {
+            return await apiCall();
+        } catch (error: any) {
+            return await this.handleErrorAndRetry(error, options, apiCall);
+        }
+    }
+    /**
+     * Performs a PUT operation to update a resource collection or item.
+     */
+    public async update<T>(
+        uri: string,
+        payload: any,
+        options: ResourceRequestOptions = RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT
+    ): Promise<T> {
+        const apiCall = async () => {
+            const response = await axios.put(uri, payload, {
+                headers: this.buildHeaders({ ...options, includeContentTypeHeader: true })
+            });
+            return response.data as T;
+        };
+        try {
+            return await apiCall();
+        } catch (error: any) {
+            return await this.handleErrorAndRetry(error, options, apiCall);
+        }
+    }
+    /**
+     * Performs a POST operation to add a resource collection or item.
+     */
+    public async add<T>(
+        uri: string,
+        payload: any,
+        options: ResourceRequestOptions = RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT
+    ): Promise<T> {
+        const apiCall = async () => {
+            const response = await axios.put(uri, payload, {
+                headers: this.buildHeaders({ ...options, includeContentTypeHeader: true })
+            });
+            return response.data as T;
+        };
+        try {
+            return await apiCall();
+        } catch (error: any) {
+            return await this.handleErrorAndRetry(error, options, apiCall);
+        }
+    }
+    /**
+     * Performs a GET operation to retrieve a resource collection or item.
+     */
+    public async delete<T>(uri: string, options: ResourceRequestOptions = RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT): Promise<T> {
+        const apiCall = async () => {
+            const response = await axios.delete(uri, {
+                headers: this.buildHeaders(options)
+            });
+            return response.data as T;
+        };
+        try {
+            return await apiCall();
+        } catch (error: any) {
+            return await this.handleErrorAndRetry(error, options, apiCall);
+        }
+    }
+    /**
+     * Performs a PATCH operation to update a resource collection or item.
+     */
+    public async patch<T>(
+        uri: string,
+        payload: any,
+        options: ResourceRequestOptions = RESOURCE_REQUEST_OPTIONS_NOCONTENT_DEFAULT
+    ): Promise<T> {
+        const apiCall = async () => {
+            const response = await axios.patch(uri, payload, {
+                headers: this.buildHeaders({ ...options, includeContentTypeHeader: true })
             });
             return response.data as T;
         };
@@ -209,7 +288,9 @@ export class RestApiFetch<ST = any, FT = string> {
         options: ResourceRequestOptions = RESOURCE_REQUEST_OPTIONS_CONTENT_DEFAULT
     ): Promise<T> {
         const apiCall = async () => {
-            const actionResponse = await axios.post(uri, payload, this.buildHeaders({ includeContentTypeHeader: true }));
+            const actionResponse = await axios.post(uri, payload, {
+                headers: this.buildHeaders({ ...options, includeContentTypeHeader: true })
+            });
             return actionResponse.data as T;
         };
         try {
